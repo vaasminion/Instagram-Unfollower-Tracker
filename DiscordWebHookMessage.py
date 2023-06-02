@@ -2,11 +2,12 @@ import requests #dependency
 from utils.ConnectionString import getConsString
 from utils.GetParameter import getParameter
 from sqlalchemy import text, create_engine
+timeout = 60
 def sendDiscordMessage(logger):
     try:
         cur = None
         failed_counter = 0
-        engine = create_engine(getConsString())
+        engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
         cur = engine.connect()
         url = getParameter('discord_webhook_instagram_url',cur)
         sql = 'select * from status order by no desc limit 1;'
