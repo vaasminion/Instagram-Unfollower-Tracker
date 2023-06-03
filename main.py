@@ -26,12 +26,13 @@ stream_handler.setFormatter(log_format)
 # Add the file handler and stream handler to the logger
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
+timeout = 60
 def time_now():
     return  str(datetime.now())[:-7]
 def rollBack():
         try:
             logger.info(" [START] Rollback")
-            engine = create_engine(getConsString())
+            engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
             con = engine.connect()
             con.execute(text("DROP TABLE IF EXISTS follower_latest"))
             con.execute(text("CREATE TABLE follower_latest AS SELECT * FROM follower_latest_backup"))
@@ -93,7 +94,7 @@ def handleOldDump(conn):
 def handleLatestDump():
     try:
 
-        engine = create_engine(getConsString())
+        engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
         df_iter = pd.read_csv('follower.csv',iterator=True,chunksize=200)
         df = pd.read_csv('follower.csv')
         logger.info(df.columns)
@@ -121,7 +122,7 @@ def handleLatestDump():
         raise ex
 def pushToDb():
     try:    
-        engine = create_engine(getConsString())
+        engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
         con = engine.connect()
         logger.info("[START] Handling OLD DUMP TABLE")
         handleOldDump(con)
@@ -137,7 +138,7 @@ def pushToDb():
             con.close
 def prepareUnfollowerlist():
     try:
-        engine = create_engine(getConsString())
+        engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
         conn = engine.connect()
         sql_1 = text('select * from follower_old where userid not in (select userid from follower_latest);')  #query to fetch who unfollow me
         sql_2 = text('select * from follower_latest where userid not in (select userid from follower_old);') # query new follower
@@ -199,7 +200,7 @@ if __name__ == '__main__':
         checkEnvVariable()
         unique_id = res = ''.join(random.choices(string.ascii_lowercase + string.digits,k = 10))
         logger.info(unique_id)
-        engine = create_engine(getConsString())
+        engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
         connection = engine.connect()
         checkExistingProcess(connection,unique_id)
         takeBackup()
