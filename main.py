@@ -89,7 +89,7 @@ def getIGFollower(user,password,username):
             logger.info(f"Couldn't login user using session information: {str(e)}")
     if userlogrequired:
         insta_client.login(user,password)
-        insta_client.dump_settings("session.json")
+        insta_client.dump_settings("setting.json")
     try:
         outputFile = open('follower.csv','w',encoding='utf-8')
         outputFile.write("userid,username,fullname\n")
