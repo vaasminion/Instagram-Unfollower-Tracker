@@ -63,11 +63,32 @@ def takeBackup():
             con.close
 def getIGFollower(user,password,username):
     insta_client = Client()
+    delay_range = [2, 10]
+    userlogrequired = True
+    Session = insta_client.load_settings("setting.json")
     follower_detail = ''
+    if Session:
+        try:
+            insta_client.set_settings(Session)
+            insta_client.login(user,password)
+            try:
+                insta_client.get_timeline_feed()
+                userlogrequired = False
+            except Exception:
+                logger.info("Session is invalid, need to login via username and password")
+                old_session = insta_client.get_settings()
+                insta_client.set_settings({})
+                insta_client.set_uuids(old_session["uuids"])
+                insta_client.login(user, password)
+                userlogrequired = False
+        except Exception as e:
+            logger.info(f"Couldn't login user using session information: {str(e)}")
+    if userlogrequired:
+        insta_client.login(user,password)
+        insta_client.dump_settings("session.json")
     try:
         outputFile = open('follower.csv','w',encoding='utf-8')
         outputFile.write("userid,username,fullname\n")
-        insta_client.login(user,password)
         userid = insta_client.user_id_from_username(username)        
         user_follower_list = insta_client.user_followers(userid)
         for follower in user_follower_list:
