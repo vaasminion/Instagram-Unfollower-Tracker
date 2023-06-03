@@ -69,7 +69,7 @@ def getIGFollower(user,password,username):
         Session = insta_client.load_settings("setting.json")
     except FileNotFoundError as fe:
         logger.info(f"File not found : "+ str(fe))
-        Sesson = False
+        Session = False
     follower_detail = ''
     if Session:
         try:
