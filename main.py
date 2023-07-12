@@ -8,9 +8,9 @@ import pandas as pd
 import logging
 import string
 from utils.EnvVariable import checkEnvVariable ,EnvVariableException
-import LogConfig
+import Config
 from DiscordWebHookMessage import sendDiscordMessage
-log_filename = LogConfig.Path + LogConfig.FileName
+log_filename = Config.LogPath + Config.LogFileName
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler(log_filename)
@@ -65,6 +65,7 @@ def getIGFollower(user,password,username):
     insta_client = Client()
     delay_range = [2, 10]
     userlogrequired = True
+    filename = Config.OutputPath + Config.OutputFileName
     try:
         Session = insta_client.load_settings("setting.json")
     except FileNotFoundError as fe:
@@ -91,7 +92,7 @@ def getIGFollower(user,password,username):
         insta_client.login(user,password)
         insta_client.dump_settings("setting.json")
     try:
-        outputFile = open('follower.csv','w',encoding='utf-8')
+        outputFile = open(filename,'w',encoding='utf-8')
         outputFile.write("userid,username,fullname\n")
         userid = insta_client.user_id_from_username(username)        
         user_follower_list = insta_client.user_followers(userid)
@@ -118,10 +119,10 @@ def handleOldDump(conn):
         raise ex
 def handleLatestDump():
     try:
-
+        filename = Config.OutputPath + Config.OutputFileName
         engine = create_engine(getConsString(),connect_args={'connect_timeout': timeout})
-        df_iter = pd.read_csv('follower.csv',iterator=True,chunksize=200)
-        df = pd.read_csv('follower.csv')
+        df_iter = pd.read_csv(filename,iterator=True,chunksize=200)
+        df = pd.read_csv(filename)
         logger.info(df.columns)
         df['url'] = df.apply(lambda row : 'https://instagram.com/' + str(row['username']),axis=1)
         df['dateadded'] = time_now()
@@ -239,7 +240,7 @@ if __name__ == '__main__':
         sql = 'insert into status(status,reason,ended_time) values (:status,:reason,:ended_time)'
         para = {'status':'Success','reason':'NA','ended_time':time_now()}
         connection.execute(text(sql),para)
-        logger.info("Completed" + time_now())
+        logger.info("Completed : " + time_now())
         connection.commit()
     except EnvVariableException as Evx:
         logger.error(str(Evx))
